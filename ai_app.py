@@ -118,5 +118,5 @@ if submit:
                 except Exception as e:
                     st.error(f"Erreur lors de l'enregistrement du vote: {e}")
 
-
-
+st.write("A des fin des tests, nous affichons la base de données des votes")
+st.write(votes_df)
