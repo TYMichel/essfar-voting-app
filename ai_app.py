@@ -123,6 +123,10 @@ st.sidebar.header("Section Administrateur")
 admin_password = st.sidebar.text_input("Mot de passe administrateur", type="password")
 
 if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécurisé
+    erase = st.button("Effacer les votes")
+    if erase:
+        votes_df = pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
+        votes_df.to_csv(votes_path, index=False)
     st.header("Résultats des votes")
     st.dataframe(votes_df)
 
@@ -132,9 +136,7 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
         return df.to_csv(index=False).encode('utf-8')
 
     csv_data = convert_df_to_csv(votes_df)
-    erase = st.button("Effacer les votes")
-    if erase:
-        votes_df = pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
+    
 
     st.download_button(
        label="📥 Télécharger les votes en CSV",
