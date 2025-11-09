@@ -118,5 +118,24 @@ if submit:
                 except Exception as e:
                     st.error(f"Erreur lors de l'enregistrement du vote: {e}")
 
-st.write("A des fin des tests, nous affichons la base de données des votes")
-st.write(votes_df)
+# --- Section Administrateur pour le téléchargement ---
+st.sidebar.header("Section Administrateur")
+admin_password = st.sidebar.text_input("Mot de passe administrateur", type="password")
+
+if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécurisé
+    st.header("Résultats des votes")
+    st.dataframe(votes_df)
+
+    # Convertir le DataFrame en CSV pour le téléchargement
+    @st.cache_data
+    def convert_df_to_csv(df):
+        return df.to_csv(index=False).encode('utf-8')
+
+    csv_data = convert_df_to_csv(votes_df)
+
+    st.download_button(
+       label="📥 Télécharger les votes en CSV",
+       data=csv_data,
+       file_name='votes.csv',
+       mime='text/csv',
+    )
