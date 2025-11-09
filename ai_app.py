@@ -72,7 +72,6 @@ def load_votes(path):
             df = pd.read_csv(path, dtype=str)
             return df.fillna("").astype(str)
         except Exception as e: #* Au cas où le fichier est vide.
-            st.error(f"Impossible de lire le fichier des votes existant: {e}")
             return pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
     else:
         # create empty dataframe
