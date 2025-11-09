@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 # Application Streamlit pour récupérer des votes avec vérification d'identifiants autorisés.
 # Placez ce fichier dans /home/mike/MyPython/essfar-election/ai_app.py
 # Utilisation: streamlit run ai_app.py
-
+#* Tous les fichier seront en csv
 
 st.set_page_config(page_title="Système de vote", layout="centered")
 
