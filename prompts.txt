@@ -1,0 +1,10 @@
+- creation de l'application 
+
+Codes une application streamlit  qui permet de récupérer les votes d'une élection.
+L'application devra avoir les fonctionnalités suivantes : 
+    - Elle récupères l' identifiant et le choix du voteur
+    - Il existe une base de données( fichier excel/csv) préalable des identifiants autorisés à voter
+    - Une autre base de données (fichier excel/csv ) stocke les résultats des votes 
+    - Si l'identifiant du votant ne s'y trouve au moment de la validation de son vote, le vote n'est pas pris en compte 
+    - Si l'identifiant du votant est déjà présent dans la base de données du vote, le vote n'est pas enregistré
+    - Si l'identifiant est présent dans le fichier des identifiant et n'a pas encore été enregistré, le vote est pris en compte.

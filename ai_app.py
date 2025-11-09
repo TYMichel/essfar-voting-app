@@ -1,0 +1,123 @@
+import streamlit as st
+import pandas as pd
+import os
+from datetime import datetime, timezone
+
+# ai_app.py
+# GitHub Copilot
+# Application Streamlit pour récupérer des votes avec vérification d'identifiants autorisés.
+# Placez ce fichier dans /home/mike/MyPython/essfar-election/ai_app.py
+# Utilisation: streamlit run ai_app.py
+
+
+st.set_page_config(page_title="Système de vote", layout="centered")
+
+st.title("🗳️ Vote président d'AGES")
+
+# --- Sidebar: fichiers / options ---
+
+# Autorized voters file uploader or path
+
+# fichier de clé prédéfini 
+try:
+    uploaded_auth = open("keys.csv","r")
+except Exception as e:
+    st.error(f"Impossible d'avoir les voteurs autorisés: {e}")
+    
+
+# Votes storage file path
+votes_path =  "votes.csv"
+
+#*  Chargements des candidats 
+# En supposant qu'un fichier excel contient les noms des candidats
+
+candidats = pd.read_excel("candidats.xlsx",header=0)
+candidats = candidats.fillna(" ")
+
+default_choices = [str(nom) +" "+ str(prenom) for nom, prenom in zip(candidats["nom"], candidats["prenom"])] 
+if not default_choices:
+    default_choices = ["Option 1", "Option 2", "Option 3"]
+    
+
+# --- Charger la liste des identifiants autorisés ---
+def load_authorized(uploaded_file):
+    if uploaded_file is not None:
+        try:
+            if uploaded_file.name.lower().endswith(".csv"):
+                df = pd.read_csv(uploaded_file, dtype=str, header=None, names=["identifiant"])
+            else:
+                df = pd.read_excel(uploaded_file, dtype=str)
+            return df.fillna("").astype(str)
+        except Exception as e:
+            st.error(f"Erreur lecture fichier uploadé: {e}")
+            return None
+    st.warning("Aucun fichier des identifiants autorisés fourni. Chargez un fichier ou placez-le au chemin indiqué.")
+    return None
+
+authorized_df = load_authorized(uploaded_auth)
+
+# If loaded, ask which column contains the identifier
+id_column = "identifiant" # le fichier contiendra une seule colonne (en théorie)
+if isinstance(authorized_df, pd.DataFrame):
+    authorized_ids = set(authorized_df[id_column].astype(str).str.strip())
+else:
+    authorized_ids = set()
+
+# --- Charger/initialiser fichier des votes ---
+def load_votes(path):
+    """Trouve un fichier contenant les votes et le charge en
+    dataframe, ou alors crées le fichier en question """
+    if os.path.exists(path):
+        try:
+            df = pd.read_csv(path, dtype=str)
+            return df.fillna("").astype(str)
+        except Exception as e: #* Au cas où le fichier est vide.
+            st.error(f"Impossible de lire le fichier des votes existant: {e}")
+            return pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
+    else:
+        # create empty dataframe
+        return pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
+
+votes_df = load_votes(votes_path)
+
+# --- Formulaire de vote ---
+st.header("Formulaire de vote")
+
+with st.form("vote_form"):
+    voter_id_raw = st.text_input(" 👤 Identifiant du votant (tel que dans la liste autorisée)", value="")
+    # Choice selector
+    
+    choice = st.selectbox("✉️  Choix du vote", options=default_choices)
+        
+    submit = st.form_submit_button("Valider le vote", type="primary", use_container_width=True )
+
+if submit:
+    voter_id = str(voter_id_raw).strip()
+    if voter_id == "":
+        st.error("Identifiant vide — le vote n'est pas pris en compte.")
+    else:
+        # Check authorization
+        if voter_id not in authorized_ids:
+            st.error("Identifiant non autorisé — le vote n'est pas pris en compte.")
+        else:
+            # Check if already voted
+            already = False
+            if not votes_df.empty:
+                # compare after stripping
+                already = any(votes_df["identifiant"].astype(str).str.strip() == voter_id)
+            if already:
+                st.warning("Cet identifiant a déjà été enregistré — nouveau vote non pris en compte.")
+            else:
+                # Record vote
+                ts = datetime.now(timezone.utc).isoformat()
+                new_row = {"identifiant": voter_id, "vote": choice, "timestamp": ts}
+                votes_df = pd.concat([votes_df, pd.DataFrame([new_row])], ignore_index=True) # ajoutes le nouveau vote  au dataFrame
+                try:
+                    # save to CSV
+                    votes_df.to_csv(votes_path, index=False)
+                    st.success("Vote enregistré avec succès.")
+                except Exception as e:
+                    st.error(f"Erreur lors de l'enregistrement du vote: {e}")
+
+
+
