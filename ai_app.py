@@ -132,6 +132,9 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
         return df.to_csv(index=False).encode('utf-8')
 
     csv_data = convert_df_to_csv(votes_df)
+    erase = st.button("Effacer les votes")
+    if erase:
+        votes_df = pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
 
     st.download_button(
        label="📥 Télécharger les votes en CSV",
