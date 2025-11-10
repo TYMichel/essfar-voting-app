@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime, timezone
+from streamlit_image_select import image_select
 
 # ai_app.py
 # GitHub Copilot
@@ -10,9 +11,10 @@ from datetime import datetime, timezone
 # Utilisation: streamlit run ai_app.py
 #* Tous les fichier seront en csv
 
-st.set_page_config(page_title="Système de vote", layout="centered")
+st.set_page_config(page_title="Système de vote", layout="centered",initial_sidebar_state="collapsed")
 
-st.title("🗳️ Vote président d'AGES")
+st.title("🗳️ Élections présidentielles AGES 2025-2026")
+st.image("./images/Essfar_logo.png")
 
 # --- Sidebar: fichiers / options ---
 
@@ -86,8 +88,18 @@ with st.form("vote_form"):
     voter_id_raw = st.text_input(" 👤 Identifiant du votant (tel que dans la liste autorisée)", value="")
     # Choice selector
     
-    choice = st.selectbox("✉️  Choix du vote", options=default_choices)
-        
+    #* Images des candidats
+    # choice = st.selectbox("✉️  Choix du vote", options=default_choices)
+    
+    images = ["./images/simo_red.png","./images/tetang_blue.png"]
+    choice = image_select("✉️  Choix du vote", images,return_value="index")
+    
+    # correspondance image et candidats
+    matching = {0 : "Simo Gabrielle",
+                1 : "Tetang Ivan"}
+    
+    choice = matching[choice]
+    
     submit = st.form_submit_button("Valider le vote", type="primary", use_container_width=True )
 
 if submit:
