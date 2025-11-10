@@ -46,7 +46,7 @@ def load_authorized(uploaded_file):
     if uploaded_file is not None:
         try:
             if uploaded_file.name.lower().endswith(".csv"):
-                df = pd.read_csv(uploaded_file, dtype=str, header=None, names=["identifiant"])
+                df = pd.read_csv(uploaded_file, dtype=str, header=0, names=["identifiant"])
             else:
                 df = pd.read_excel(uploaded_file, dtype=str)
             return df.fillna("").astype(str)
