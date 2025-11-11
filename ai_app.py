@@ -21,8 +21,9 @@ st.image("./images/Essfar_logo.png")
 # Autorized voters file uploader or path
 
 # fichier de clé prédéfini 
+keys_path = "fake_keys.csv" # les clés pour le vote (fake or real)
 try:
-    uploaded_auth = open("keys.csv","r")
+    uploaded_auth = open(keys_path,"r")
 except Exception as e:
     st.error(f"Impossible d'avoir les voteurs autorisés: {e}")
     
@@ -36,9 +37,9 @@ votes_path =  "votes.csv"
 candidats = pd.read_excel("candidats.xlsx",header=0)
 candidats = candidats.fillna(" ")
 
-default_choices = [str(nom) +" "+ str(prenom) for nom, prenom in zip(candidats["nom"], candidats["prenom"])] 
-if not default_choices:
-    default_choices = ["Option 1", "Option 2", "Option 3"]
+liste_candidats = [str(nom) +" "+ str(prenom) for nom, prenom in zip(candidats["nom"], candidats["prenom"])] 
+if not liste_candidats:
+    liste_candidats = ["Option 1", "Option 2", "Option 3"] 
     
 
 # --- Charger la liste des identifiants autorisés ---
@@ -83,25 +84,33 @@ votes_df = load_votes(votes_path)
 
 # --- Formulaire de vote ---
 st.header("Formulaire de vote")
-
+def format_choice(chemin): 
+        """ les choix sont des chemins vers des images, il faut 
+        faire correspondre chaque image à un candidat. Le tout 
+        en fonction du nom de l'image. """
+        global liste_candidats
+        st.write(liste_candidats)
+        name = os.path.split(chemin)[1].split(".")[0]
+        st.write(f" name : {name}")
+        for i in liste_candidats:
+            if name == i.split(" ")[0].lower(): 
+                return i
+        
+        st.error("Il semblerait que les noms des images ne correspondent pas aux noms des candidats.")
 with st.form("vote_form"):
     voter_id_raw = st.text_input(" 👤 Identifiant du votant (tel que dans la liste autorisée)", value="")
     # Choice selector
     
     #* Images des candidats
     # choice = st.selectbox("✉️  Choix du vote", options=default_choices)
-    
-    images = ["./images/simo_red.png","./images/tetang_blue.png"]
-    choice = image_select("✉️  Choix du vote", images,return_value="index")
-    
+    images = os.listdir("./images/candidats") # toutes les images 
+    images = ["images/candidats/" + i  for i in images]
+    choice = image_select("✉️  Choix du vote", images)
     # correspondance image et candidats
-    matching = {0 : "Simo Gabrielle",
-                1 : "Tetang Ivan"}
-    
-    choice = matching[choice]
-    
+    if choice:
+        choice = format_choice(choice)
     submit = st.form_submit_button("Valider le vote", type="primary", use_container_width=True )
-
+    
 if submit:
     voter_id = str(voter_id_raw).strip()
     if voter_id == "":
@@ -135,10 +144,24 @@ st.sidebar.header("Section Administrateur")
 admin_password = st.sidebar.text_input("Mot de passe administrateur", type="password")
 
 if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécurisé
+    
+    #* Suppresion des votes
+    @st.dialog("Suppression des votes")
+    def supp_votes():
+        st.error("Voulez-vous vraiment supprimez tous les votes ? sinon quittez !")
+        if st.button("Supprimer"):
+            votes_df = pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
+            votes_df.to_csv(votes_path, index=False)
+            st.rerun()
+    
+    
     erase = st.button("Effacer les votes")
     if erase:
-        votes_df = pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
-        votes_df.to_csv(votes_path, index=False)
+        supp_votes()
+    #     votes_df = pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
+    #     votes_df.to_csv(votes_path, index=False)
+        
+    
     st.header("Résultats des votes")
     st.dataframe(votes_df)
 
