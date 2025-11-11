@@ -13,7 +13,12 @@ from streamlit_image_select import image_select
 
 st.set_page_config(page_title="Système de vote", layout="centered",initial_sidebar_state="collapsed")
 
+#----------------------------------------- Nom de l'application ICI (modifiable à souhait) --------------------------------
 st.title("🗳️ Élections présidentielles AGES 2025-2026")
+#------------------------------------------------------------------------------------------------------------------------
+
+
+
 st.image("./images/Essfar_logo.png")
 
 # --- Sidebar: fichiers / options ---
@@ -36,6 +41,9 @@ votes_path =  "votes.csv"
 
 candidats = pd.read_excel("candidats.xlsx",header=0)
 candidats = candidats.fillna(" ")
+
+if candidats.empty:
+    st.error(" Il n'y a aucun candidat dans le fichier excel des candidats. Bien vouloir en ajouter")
 
 liste_candidats = [str(nom) +" "+ str(prenom) for nom, prenom in zip(candidats["nom"], candidats["prenom"])] 
 if not liste_candidats:
@@ -105,6 +113,10 @@ with st.form("vote_form"):
     # choice = st.selectbox("✉️  Choix du vote", options=default_choices)
     images = os.listdir("./images/candidats") # toutes les images 
     images = ["images/candidats/" + i  for i in images]
+    
+    if images == []: # si pas d'images
+        st.error("Il n'y aucune image de candidats dans le dossier 'candidats'")
+        
     choice = image_select("✉️  Choix du vote", images)
     # correspondance image et candidats
     if choice:
