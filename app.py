@@ -97,9 +97,7 @@ def format_choice(chemin):
         faire correspondre chaque image à un candidat. Le tout 
         en fonction du nom de l'image. """
         global liste_candidats
-        st.write(liste_candidats)
         name = os.path.split(chemin)[1].split(".")[0]
-        st.write(f" name : {name}")
         for i in liste_candidats:
             if name == i.split(" ")[0].lower(): 
                 return i
@@ -175,6 +173,10 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
         
     
     st.header("Résultats des votes")
+    #-----------------------Statistiques des votes 
+    
+    
+    #----------------------- Affichage du csv des votes 
     st.dataframe(votes_df)
 
     # Convertir le DataFrame en CSV pour le téléchargement
