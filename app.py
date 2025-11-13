@@ -26,8 +26,10 @@ st.image("./images/Essfar_logo.png")
 
 # Autorized voters file uploader or path
 
-# fichier de clé prédéfini 
+#!-----------------------------------------------------------clés de l'application 
 keys_path = "fake_keys.csv" # les clés pour le vote (fake or real)
+#!---------------------------------------------------------------------------------------
+
 try:
     uploaded_auth = open(keys_path,"r")
 except Exception as e:
@@ -46,7 +48,7 @@ candidats = candidats.fillna(" ")
 if candidats.empty:
     st.error(" Il n'y a aucun candidat dans le fichier excel des candidats. Bien vouloir en ajouter")
 
-liste_candidats = [str(nom) +" "+ str(prenom) for nom, prenom in zip(candidats["nom"], candidats["prenom"])] 
+liste_candidats = [str(nom)+" "+str(prenom) for nom, prenom in zip(candidats["nom"], candidats["prenom"])] 
 if not liste_candidats:
     liste_candidats = ["Option 1", "Option 2", "Option 3"] 
     
@@ -179,7 +181,9 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
         
             votes_df_trans = tg.transformed_votes(votes_df)
             votes_cum = tg.table_votes(votes_df_trans)
-            fig = tg.trace(votes_cum,{'Simo  Gabrielle' : 'r', 'Tetang Ivan': 'b'}) # pour le cas unique du vote
+            matching = {candidats.iloc[i,0]+" "+candidats.iloc[i,1] : candidats.iloc[i,2] for i in range(candidats.shape[0])} 
+            # fig = tg.trace(votes_cum,{'Simo  Gabrielle' : 'r', 'Tetang Ivan': 'b'}) # pour le cas unique du vote
+            fig = tg.trace(votes_cum,matching=matching)
             st.pyplot(fig)
 
             actualiser = st.button(label="actualiser" ,type="primary")
@@ -192,7 +196,11 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
             st.header(votes_df.shape[0] , divider="yellow")
             # candidat dominant 
             st.subheader(f"En tête : ")
-            st.header(pd.Series(votes_df['vote'].values).mode()[0],divider="yellow")
+            s = pd.Series(votes_df['vote'].values)
+            head = s.mode()[0] # candidat en tête
+            
+            st.header(head)
+            st.header(f"{s.value_counts(normalize=True)[0] * 100 } % ") # pourcentage du candidat en tête.
         
         st.divider()
     #----------------------- Affichage du csv des votes 
