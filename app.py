@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from datetime import datetime, timezone
 from streamlit_image_select import image_select
+import traitement_graphique as tg
 
 # ai_app.py
 # GitHub Copilot
@@ -11,7 +12,7 @@ from streamlit_image_select import image_select
 # Utilisation: streamlit run ai_app.py
 #* Tous les fichier seront en csv
 
-st.set_page_config(page_title="Système de vote", layout="centered",initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Système de vote", layout="wide",initial_sidebar_state="collapsed")
 
 #----------------------------------------- Nom de l'application ICI (modifiable à souhait) --------------------------------
 st.title("🗳️ Élections présidentielles AGES 2025-2026")
@@ -165,17 +166,35 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
             st.rerun()
     
     
-    erase = st.button("Effacer les votes")
-    if erase:
-        supp_votes()
     #     votes_df = pd.DataFrame(columns=["identifiant", "vote", "timestamp"])
     #     votes_df.to_csv(votes_path, index=False)
         
     
     st.header("Résultats des votes")
     #-----------------------Statistiques des votes 
-    
-    
+    votes_df = pd.read_csv(votes_path,header=0)
+    if votes_df.shape[0] >= 2:
+        col1, col2 = st.columns([0.8,0.2])
+        with col1: #colonne de la courbe des votes
+        
+            votes_df_trans = tg.transformed_votes(votes_df)
+            votes_cum = tg.table_votes(votes_df_trans)
+            fig = tg.trace(votes_cum,{'Simo  Gabrielle' : 'r', 'Tetang Ivan': 'b'}) # pour le cas unique du vote
+            st.pyplot(fig)
+
+            actualiser = st.button(label="actualiser" ,type="primary")
+            if actualiser:
+                st.rerun()
+        with col2 : # colonne avec les statistiques 
+            # nombre de votes 
+
+            st.subheader(f"Nombre de votes ")
+            st.header(votes_df.shape[0] , divider="yellow")
+            # candidat dominant 
+            st.subheader(f"En tête : ")
+            st.header(pd.Series(votes_df['vote'].values).mode()[0],divider="yellow")
+        
+        st.divider()
     #----------------------- Affichage du csv des votes 
     st.dataframe(votes_df)
 
@@ -193,3 +212,7 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
        file_name='votes.csv',
        mime='text/csv',
     )
+
+    erase = st.button("Effacer les votes")
+    if erase:
+        supp_votes()
