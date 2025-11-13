@@ -3,3 +3,4 @@ pandas
 openpyxl
 numpy
 streamlit-image-select
+matplotlib
