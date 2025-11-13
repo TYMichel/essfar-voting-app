@@ -27,7 +27,7 @@ st.image("./images/Essfar_logo.png")
 # Autorized voters file uploader or path
 
 #!-----------------------------------------------------------clés de l'application 
-keys_path = "fake_keys.csv" # les clés pour le vote (fake or real)
+keys_path = "keys.csv" # les clés pour le vote (fake or real) 
 #!---------------------------------------------------------------------------------------
 
 try:
