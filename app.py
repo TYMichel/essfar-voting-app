@@ -200,8 +200,9 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
             head = s.mode()[0] # candidat en tête
             
             st.header(head)
-            st.header(f"{s.value_counts(normalize=True)[0] * 100: .2F } % ") # pourcentage du candidat en tête.
-        
+            percent_head = s.value_counts(normalize=True)[0] * 100
+            st.header(f"{percent_head:.2F} % ") # pourcentage du candidat en tête.
+            
         st.divider()
     #----------------------- Affichage du csv des votes 
     st.dataframe(votes_df)
