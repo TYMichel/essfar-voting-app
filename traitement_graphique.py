@@ -73,8 +73,10 @@ def trace(tbl:pd.core.frame.DataFrame,matching={}):
             trace(tbl)
         to_remove = candidats.copy()
         for candidat in list(matching.keys()):
-            to_remove.remove(candidat) # candidats qui ne sont pas dans le matching
-    
+            try:
+                to_remove.remove(candidat) # candidats qui ne sont pas dans le matching
+            except:
+                pass
     else:
         to_remove = candidats.copy()
         
