@@ -18,6 +18,8 @@ st.set_page_config(page_title="Système de vote", layout="wide",initial_sidebar_
 st.title("🗳️ Élections présidentielles AGES 2025-2026")
 #------------------------------------------------------------------------------------------------------------------------
 
+if "blocked" not in st.session_state: # permet d'empêcher de nouveaux votes après l'heure de fin
+    st.session_state["blocked"] = False # naturellement non bloqué
 
 
 st.image("./images/Essfar_logo.png")
@@ -125,38 +127,41 @@ with st.form("vote_form"):
     submit = st.form_submit_button("Valider le vote", type="primary", use_container_width=True )
     
 if submit:
-    voter_id = str(voter_id_raw).strip()
-    if voter_id == "":
-        st.error("Identifiant vide — le vote n'est pas pris en compte.")
-    else:
-        # Check authorization
-        if voter_id not in authorized_ids:
-            st.error("Identifiant non autorisé — le vote n'est pas pris en compte.")
+    if not st.session_state["blocked"]:
+        voter_id = str(voter_id_raw).strip()
+        if voter_id == "":
+            st.error("Identifiant vide — le vote n'est pas pris en compte.")
         else:
-            # Check if already voted
-            already = False
-            if not votes_df.empty:
-                # compare after stripping
-                already = any(votes_df["identifiant"].astype(str).str.strip() == voter_id)
-            if already:
-                st.warning("Cet identifiant a déjà été enregistré — nouveau vote non pris en compte.")
+            # Check authorization
+            if voter_id not in authorized_ids:
+                st.error("Identifiant non autorisé — le vote n'est pas pris en compte.")
             else:
-                # Record vote
-                ts = datetime.now(timezone.utc).isoformat()
-                new_row = {"identifiant": voter_id, "vote": choice, "timestamp": ts}
-                votes_df = pd.concat([votes_df, pd.DataFrame([new_row])], ignore_index=True) # ajoutes le nouveau vote  au dataFrame
-                try:
-                    # save to CSV
-                    votes_df.to_csv(votes_path, index=False)
-                    st.success("Vote enregistré avec succès.")
-                except Exception as e:
-                    st.error(f"Erreur lors de l'enregistrement du vote: {e}")
+                # Check if already voted
+                already = False
+                if not votes_df.empty:
+                    # compare after stripping
+                    already = any(votes_df["identifiant"].astype(str).str.strip() == voter_id)
+                if already:
+                    st.warning("Cet identifiant a déjà été enregistré — nouveau vote non pris en compte.")
+                else:
+                    # Record vote
+                    ts = datetime.now(timezone.utc).isoformat()
+                    new_row = {"identifiant": voter_id, "vote": choice, "timestamp": ts}
+                    votes_df = pd.concat([votes_df, pd.DataFrame([new_row])], ignore_index=True) # ajoutes le nouveau vote  au dataFrame
+                    try:
+                        # save to CSV
+                        votes_df.to_csv(votes_path, index=False)
+                        st.success("Vote enregistré avec succès.")
+                    except Exception as e:
+                        st.error(f"Erreur lors de l'enregistrement du vote: {e}")
+    else:
+        st.error("Les votes ne sont plus pris en compte à l'heure actuelle.\n Merci de votre compréhension")
 
 # --- Section Administrateur pour le téléchargement ---
 st.sidebar.header("Section Administrateur")
 admin_password = st.sidebar.text_input("Mot de passe administrateur", type="password")
 
-if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécurisé
+if admin_password == "Essfar2025#": # Remplacez "admin" par un mot de passe plus sécurisé
     
     #* Suppresion des votes
     @st.dialog("Suppression des votes")
@@ -225,3 +230,17 @@ if admin_password == "admin": # Remplacez "admin" par un mot de passe plus sécu
     erase = st.button("Effacer les votes")
     if erase:
         supp_votes()
+    
+    # controle des horaires des votes 
+    
+    # affiche si vote permis ou pas
+    if st.session_state["blocked"]:
+        st.error("Votes interdits")
+    else:
+        st.success("Votes permis ")
+        
+    # definis si vote permis ou pas 
+    block = st.button("Bloquer/Débloquer les votes ",type="secondary")
+    if block:
+        st.session_state["blocked"] = not st.session_state["blocked"]
+        st.rerun()
